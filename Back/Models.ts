@@ -1,7 +1,11 @@
 import { DataTypes } from "sequelize";
 import db from "./Connection";
 
-export const USER= db.define("USER", {
+export const usuario= db.define("usuario", {
+    USER_ID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
     USER_NAME: {
         type: DataTypes.STRING,
     },
@@ -32,7 +36,13 @@ export const USER= db.define("USER", {
     USER_SINCE: {
         type: DataTypes.DATE,
     },
-})
+}, {
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    freezeTableName: true,
+    tableName: 'USER'
+  })
 
 export const PUBLICATION= db.define("PUBLICATION", {
     USER_ID: {
