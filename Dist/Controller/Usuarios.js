@@ -35,25 +35,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUsuario = exports.putUsuario = exports.postUsuario = exports.getUsuario = exports.getUsuarios = void 0;
 const Models = __importStar(require("../Back/Models"));
 const getUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const usuarios = yield Models.usuario.findAll();
+    const usuarios = yield Models.USR_MOD.findAll();
     res.json({ usuarios });
 });
 exports.getUsuarios = getUsuarios;
 const getUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const usuario = yield Models.usuario.findByPk(id);
+    const usuario = yield Models.USR_MOD.findByPk(id);
     usuario ? res.json(usuario) : res.status(404).json({
-        msg: "No existe usuario con ID"
+        msg: "No existe usuario con ID: " + id
     });
 });
 exports.getUsuario = getUsuario;
-const postUsuario = (req, res) => {
+const postUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { body } = req;
-    res.json({
-        msg: "postUsuarios",
-        body
-    });
-};
+    try {
+        const usuario = Models.USR_MOD.build(body);
+        yield usuario.save();
+        res.json(usuario);
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            msg: "Error al crear User",
+        });
+    }
+});
 exports.postUsuario = postUsuario;
 const putUsuario = (req, res) => {
     const { body } = req;
