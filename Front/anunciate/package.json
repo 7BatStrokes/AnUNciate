@@ -1,5 +1,5 @@
 {
-  "name": "anunciate",
+  "name": "anUNciate",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
+    "mdb-vue-ui-kit": "^4.1.0",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3"
   },
