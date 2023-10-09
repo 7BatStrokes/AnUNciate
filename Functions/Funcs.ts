@@ -2,11 +2,9 @@ import * as Models from "../Back/Models";
 import {v4 as uuidv4} from 'uuid';
 
 //String Handling
-export function str2hsh(str: string) {
+export function str2hsh(str: string): string {
     let hash = 0;
-    if (str.length == 0) return hash;
-
-    str
+    if (str.length == 0) return hash.toString();
     for (let i = 0; i < str.length; i++) {
         let char = str.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
