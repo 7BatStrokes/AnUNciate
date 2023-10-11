@@ -58,6 +58,23 @@ export async function updateUser(uuid: string, password: string, name?:string, l
     }
 } //updateUser("e67a6b85-ce46-49ef-a8da-57a2bb3ff1e2", "I-am-the-Knight08", "Bruno", "Diaz", undefined, undefined, "Palmira")
 
+export async function LogIn(mail: string, password: string) {
+    try {
+        let usuario= await findUser(undefined, mail)
+        if (usuario) {
+            if (str2hsh(password) == usuario?.getDataValue("USER_PASSWORD")) {
+                return (usuario)
+            } else {
+                console.log("Not the correct password")
+            }
+        } else {
+            console.log("No user with that mail")
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 let findUser= async function(uuid?: string, mail?: string) {
     if(uuid) {
         const usuario= await Models.USR_MOD.findByPk(uuid)
@@ -68,7 +85,7 @@ let findUser= async function(uuid?: string, mail?: string) {
     }
 }
 
-//Classe: PUBLICATION
+//Classes: PUBLICATION
 export async function createPublication(user_id:string, publication_title:string, publication_description:string, publication_price: number, publication_date: Date, publication_state: boolean,publication_quantity: number) {
     try {
         let usuario = await Models.PUB_MOD.build({
