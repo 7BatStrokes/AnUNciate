@@ -75,6 +75,9 @@ export const PUB_MOD= db.define("PUB_MOD", {
   })
 
 export const COM_MOD= db.define("COM_MOD", {
+    COMMENT_ID: {
+        type: DataTypes.STRING,
+    },
     USER_ID: {
         type: DataTypes.STRING,
     },

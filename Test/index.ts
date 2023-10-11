@@ -5,7 +5,7 @@ import Multer from "multer";
 
 const app = express();
 const port = 8080;
-const src = "C:\\Users\\Natalia Monroy\\Downloads\\DLC\\Projects\\AnUNciate\\dist\\Test\\views";
+const src = "x";
 app.use(express.static(src));
 
 const multer = Multer({
