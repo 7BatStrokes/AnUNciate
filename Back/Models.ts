@@ -41,10 +41,14 @@ export const USR_MOD= db.define("USR_MOD", {
     createdAt: false,
     updatedAt: false,
     freezeTableName: true,
-    tableName: 'USER'
+    tableName: 'USERS'
   })
 
 export const PUB_MOD= db.define("PUB_MOD", {
+    PUBLICATION_ID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
     USER_ID: {
         type: DataTypes.STRING,
     },
@@ -58,10 +62,10 @@ export const PUB_MOD= db.define("PUB_MOD", {
         type: DataTypes.INTEGER,
     },
     PUBLICATION_DATE: {
-        type: DataTypes.TIME,
+        type: DataTypes.DATE,
     },
     PUBLICATION_STATE: {
-        type: DataTypes.BOOLEAN,
+        type: DataTypes.TINYINT,
     },
     PUBLICATION_QUANTITY: {
         type: DataTypes.INTEGER,
@@ -71,12 +75,13 @@ export const PUB_MOD= db.define("PUB_MOD", {
     createdAt: false,
     updatedAt: false,
     freezeTableName: true,
-    tableName: 'PUBLICATION'
+    tableName: 'PUBLICATIONS'
   })
 
 export const COM_MOD= db.define("COM_MOD", {
     COMMENT_ID: {
         type: DataTypes.STRING,
+        primaryKey: true
     },
     USER_ID: {
         type: DataTypes.STRING,
@@ -124,7 +129,8 @@ export const KYW_MOD= db.define("KYW_MOD", {
 
 export const CHT_MOD= db.define("CHT_MOD", {
     CHAT_ID: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        primaryKey: true
     },
     PUBLICATION_ID: {
         type: DataTypes.STRING
@@ -154,7 +160,8 @@ export const CHT_MOD= db.define("CHT_MOD", {
 
 export const CAT_MOD= db.define("CAT_MOD", {
     CATEGORY_ID: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        primaryKey: true
     },
     CATEGORY_NAME: {
         type: DataTypes.STRING

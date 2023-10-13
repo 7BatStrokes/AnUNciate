@@ -86,7 +86,7 @@ let findUser= async function(uuid?: string, mail?: string) {
 }
 
 //Classes: PUBLICATION
-export async function createPublication(user_id:string, publication_title:string, publication_description:string, publication_price: number, publication_date: Date, publication_state: boolean,publication_quantity: number) {
+export async function createPublication(user_id:string, publication_title:string, publication_description:string, publication_price: number, publication_state: number, publication_quantity: number) {
     try {
         let publication = await Models.PUB_MOD.build({
             PUBLICATION_ID: uuidv4(),
@@ -94,7 +94,7 @@ export async function createPublication(user_id:string, publication_title:string
             PUBLICATION_TITLE: publication_title,
             PUBLICATION_DESCRIPTION: publication_description,
             PUBLICATION_PRICE: publication_price,
-            PUBLICATION_DATE: Date.now(),
+            PUBLICATION_DATE: new Date().getTime(),
             PUBLICATION_STATE: publication_state,
             PUBLICATION_QUANTITY: publication_quantity,
             })
@@ -187,5 +187,19 @@ export async function findChats(publication_id: string, user_1: string, user_2: 
         }
     })
     return chats.sort()
+}
+
+//Classes: CATEGORY
+export async function createCategory(category_name: string, category_description: string) {
+    try {
+        let category = await Models.CAT_MOD.build({
+            CATEGORY_ID: uuidv4(),
+            CATEGORY_NAME: category_name,
+            CATEGORY_DESCRIPTION: category_description
+            })
+        category.save();
+    } catch (error) {
+        console.log(error);
+    }
 }
 
