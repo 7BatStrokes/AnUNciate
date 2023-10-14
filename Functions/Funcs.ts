@@ -1,5 +1,6 @@
 import * as Models from "../Back/Models";
 import {v4 as uuidv4} from 'uuid';
+import { sign } from "jsonwebtoken";
 
 //String Handling
 export function str2hsh(str: string): string {
@@ -14,11 +15,13 @@ export function str2hsh(str: string): string {
 }
 
 //Classes: USER
-export async function createUser(name:string, lastname:string, mail:string, password: string, photo: string, faculty: string,city: string) {
+export async function createUser(name:string, lastname:string, mail:string, password: string, photo: string, faculty: string, city: string) {
     try {
-        let usuario = await Models.USR_MOD.findOrCreate({
-            where: { USER_MAIL: mail},
-            defaults: {
+        let usuario= await findUser(undefined, mail)
+        if (usuario) {
+            return("User with that email already exists")
+        } else {
+            await Models.USR_MOD.create({
                 USER_ID: uuidv4(),
                 USER_NAME: name,
                 USER_LASTNAME: lastname,
@@ -31,13 +34,12 @@ export async function createUser(name:string, lastname:string, mail:string, pass
                 USER_CALIFICATORS: 0 ,
                 USER_TOKEN: "0",
                 USER_SINCE: Date.now()
-            }
         })
+        }
     } catch (error) {
-        console.log(error);
+        return(error);
     }
-} // createUser("David", "Garcia", "davidgar@outlook.com", "12345678", "none", "Ingenieria", "Bogota")
-
+}
 export async function updateUser(uuid: string, password: string, name?:string, lastname?:string, photo?: string, faculty?: string,city?: string) {
     try {
         let usuario= await findUser(uuid)
@@ -56,25 +58,44 @@ export async function updateUser(uuid: string, password: string, name?:string, l
     } catch (error) {
         console.log(error);
     }
-} //updateUser("e67a6b85-ce46-49ef-a8da-57a2bb3ff1e2", "I-am-the-Knight08", "Bruno", "Diaz", undefined, undefined, "Palmira")
-
-export async function LogIn(mail: string, password: string) {
+} 
+export async function logIn(mail: string, password: string) {
     try {
         let usuario= await findUser(undefined, mail)
         if (usuario) {
             if (str2hsh(password) == usuario?.getDataValue("USER_PASSWORD")) {
-                return (usuario)
+                let access_token= sign({
+                    id: usuario.getDataValue("USER_ID")
+                },"access_secret", {expiresIn: "5m"});
+                let refresh_token= sign({
+                    id: usuario.getDataValue("USER_ID")
+                },"refresh_secret", {expiresIn: "1w"});
+                return([access_token, refresh_token])
             } else {
-                console.log("Not the correct password")
+                return("Not the correct password")
             }
         } else {
-            console.log("No user with that mail")
+            return("No user with that email")
         }
     } catch (error) {
-        console.log(error);
+        return(error);
     }
 }
-
+export async function authUser(uuid: string) {
+    try {
+        if(uuid) {
+            const usuario= await Models.USR_MOD.findOne({
+                where: {USER_ID: uuid},
+                attributes: {
+                    exclude: 
+                        ["USER_PASSWORD"]
+                }
+            })
+            return usuario}
+    } catch (error) {
+        return(error);
+    }
+}
 let findUser= async function(uuid?: string, mail?: string) {
     if(uuid) {
         const usuario= await Models.USR_MOD.findByPk(uuid)
@@ -100,7 +121,7 @@ export async function createPublication(user_id:string, publication_title:string
             })
         publication.save();
     } catch (error) {
-        console.log(error);
+        return(error);
     }
 }
 
@@ -202,4 +223,3 @@ export async function createCategory(category_name: string, category_description
         console.log(error);
     }
 }
-
