@@ -27,7 +27,6 @@ class Server {
         this.app.use(express.json());
         this.app.use(express.static("Public"));
     }
-    
     routes () {
         this.app.use(this.apiPaths.path, Rout.default)
     }
@@ -35,7 +34,6 @@ class Server {
     async dbConnect() {
         try {
             await db.authenticate();
-            console.log("Nice");
         } catch (error) {
             console.log(error);
         };

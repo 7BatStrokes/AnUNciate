@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as Models from "../Back/Models";
 import * as Funcs from "../Functions/Funcs";
 import { sign, verify } from "jsonwebtoken";
+import { v4 as uuidv4 } from 'uuid';
 
 //User Management
 export const getUsuarios = async (req: Request, res: Response) => {
@@ -165,4 +166,55 @@ export const postRegister = async (req: Request, res: Response) => {
             msg: "Error al hacer Register",
         })
     }  
+}
+
+//Images
+export const getImage= async (req: Request, res: Response) => {
+    try {
+        const [files] = await Models.bucket.getFiles();
+        res.send([files]);
+        console.log("Success");
+    } catch (error) {
+        res.send("Error:" + error);
+    }
+}
+export const uploadImage= async (req: Request, res: Response) => {
+    try {
+        var upload = Models.multer.fields([{name: 'image'}, {name: 'publication_id'}])
+        upload(req, res, function (err) {
+            if (err) {
+              res.status(401).send({
+                msg: "Could not upload image",
+                body: err
+              })
+            } else {
+                try {
+                    if (req.files) {
+                        const files= req.files as {[fieldname: string]: Express.Multer.File[]};
+                        const img= files['image'][0];
+                        let img_id= uuidv4()
+                        let pub= req.body.publication_id
+                        const blob = Models.bucket.file(`${req.body.publication_id+"/"+img_id}_post.jpg`);
+                        const blobStream = blob.createWriteStream();
+                        blobStream.end(img.buffer);
+                        try {
+                            Funcs.addImage2DB(req.body.publication_id, img_id)
+                            res.status(200).send({
+                                msg: "Everything went right!"
+                        })
+                        } catch (error) {
+                            res.status(401).send({
+                                msg: err
+                        })
+                        }
+                        //createImg(req.file)
+                        } else throw "error with img";
+                } catch (error) {
+                        res.status(401).send(error);
+                }
+            }
+          })
+    } catch (error) {
+        res.send("Error:" + error);
+    }
 }

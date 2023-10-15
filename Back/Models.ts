@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
+import Multer from "multer";
 import db from "./Connection";
+import { Storage } from "@google-cloud/storage";
 
 export const USR_MOD= db.define("USR_MOD", {
     USER_ID: {
@@ -104,6 +106,10 @@ export const COM_MOD= db.define("COM_MOD", {
   })
 
 export const IMG_MOD= db.define("IMG_MOD", {
+    IMAGE_ID: {
+        type: DataTypes.TEXT,
+        primaryKey: true
+    },
     IMAGE_STR: {
         type: DataTypes.TEXT,
     }
@@ -176,3 +182,37 @@ export const CAT_MOD= db.define("CAT_MOD", {
     freezeTableName: true,
     tableName: 'CATEGORY'
   })
+
+//Relations
+export const RPI_MOD= db.define("RPI_MOD", {
+    PUBLICATION_ID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
+    IMAGE_ID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    }
+},{
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    freezeTableName: true,
+    tableName: 'REL_PUBLICATION_IMAGES'
+  })
+
+
+const projectId = "spatial-cargo-324302"; // Get this from Google Cloud
+const keyFilename = "spatial-cargo-324302-594267ec6279.json"; // Get this from Google Cloud -> Credentials -> Service Accounts
+const storage = new Storage({
+    projectId,
+    keyFilename,
+  });
+export const bucket = storage.bucket("img-anunciate");
+
+export const multer = Multer({
+    storage: Multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 2000 * 2000
+    },
+  });

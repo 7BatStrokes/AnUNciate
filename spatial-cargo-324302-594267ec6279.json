@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "spatial-cargo-324302",
+  "private_key_id": "594267ec62792252034eebb811d4d462e486bc47",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDXr7M1325I+SlY\nBqdrghuaDcJWtJoLVzyIs5LrAdS/5pAzBX0STx66vywIFpXVQFJYFl3jXAdFnTa8\njDWR7KzNTbX2hRPoAi8XAg4lM852GyXvB4geGoqEKEmDlHt+n8EA76GQNKAXHD1A\nZZjC2it3OSbVbz5cF8uWga9zmVQFUIogOZYguqS6520J/Xz0joW6cB1sm6iBtu7E\n+k/ikazukBJd0Aj+8EN4g6xtpiVlE4q9KhqHTHwg8bI2uCV1rVdZqu81kA+eyxI8\n4R5WChiYmg4vENCDmQosbncDsXuhlgDScYGegEMlgcX7XC4YvaK+fpUWnrUxBvwi\nabtjBHQ/AgMBAAECggEACKYfBZYEEiELq1/47rK08KSEmn17f+DrqH+q8ImOQnO4\nbJNXxJgvn0VzOo/NSlPd+XJMKYXTNNNtEnp823EmLMVk+pGzjqYnxUBr2MoPCWVl\nTAR9TNe7njkPWZtmqFk3oBX74JB7qvGS8zYfvhCJlapRCFYBpie+HjbtFjGb0Oqr\nBseSHmaaouB2+1z08dw/1Btb4iY/5vLaWRI2oecrDUf1vkdNvcBrMHRBIDRg/AiX\nR0XbsljdEqmyZjMoLaThphCM++Yyoj2TAmLYf6j/CSZkp94loaMDuWWWwAlQHuOk\ni8GTUEZ4KIL9831n+jsA8mTR+y2wtNr1dL1bLZIUwQKBgQDsL/+jjw6SNP6NIbcc\ns4knQD5D9eol0vKIr+bKri9UvY3DjLrKD14hWBhQGeKAp2hQ9jwN5+nhCO/QzxY0\nAVaonXtq9WX1rB3U10W11nIQY8mvUDkkTKZBvQUM2wKnEra10ipxfSmzUWXanm2J\nN5cXtuM8kmNDwJ7OtcYt8Dp3BwKBgQDpx3MjeQ3GAefqDhOxBtjI0SpycvqQl+Ys\nCCnCXkp7mxcN6rKpmNuvfAqS1V7/fTkgEs0HiYKdFpGOzyC8xg/VzYFvjiyVCN3T\nBr3OV7Q2wVafuMX+D+ui/R3O64ByWLvjzWqcnRK4c48EDxCYcjMXjqSpLJfNJgQz\nsCn9YelTCQKBgAL+rNAnHTkvYNbrSYYcpK2Ru/hiouBt51NiX5vMT59Uc/q5yxiK\nz1e+5TgGy/9zn/f+104Z1bZbxaaxKYfpSG8E6C64A930m8A6JpEisfmROlp1uvPB\n4Q3OVsUN9d+mdhiiHJWpz6CNdKwr/BmUUd8kG4eGF6ohRCI83dFxTVx7AoGAVTq+\n0l7u05KcT2uEaFTbshL3y7P5f7+xTbpIJzGjK/8134ACVOyCoy6w2ClsMe8gZX4V\nO7s5YDX7KTqAb/IxkbwThW0q+ca6wJXDmzfEXvYLs710iZSaTtjDBk47jPSmw31/\nccueKJsQt+UaIsn3sI3zoC2+xi8m9wUxucv5eakCgYB0L3Cs5cAdcd6vk+7xH6ka\n+znZaZGohi15lsmAABY8iFWetfZujs57N69fUXp+Ii79JCBFn+Q/EQXiZ5/zjuiT\nQv0ZejRVBHQV1OzykPsKRa7dR/m3QVUgng3bJ29GyjEVAWQUASs6Ggx0lFw0mza1\nKl6B0HjAKoLLso6tCCVn9Q==\n-----END PRIVATE KEY-----\n",
+  "client_email": "davgarciapa@spatial-cargo-324302.iam.gserviceaccount.com",
+  "client_id": "115233583874216374335",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/davgarciapa%40spatial-cargo-324302.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

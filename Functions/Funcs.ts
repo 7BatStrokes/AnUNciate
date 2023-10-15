@@ -1,6 +1,7 @@
 import * as Models from "../Back/Models";
 import {v4 as uuidv4} from 'uuid';
 import { sign } from "jsonwebtoken";
+import {File} from '@web-std/file';
 
 //String Handling
 export function str2hsh(str: string): string {
@@ -222,4 +223,64 @@ export async function createCategory(category_name: string, category_description
     } catch (error) {
         console.log(error);
     }
+}
+
+//Classe: IMAGES
+export async function createImg (x: Express.Multer.File) {
+    let file = new Blob([x.buffer])  
+    console.log(file.size)
+    // Create new file so we can rename the file
+    let blob = file?.slice(0, file.size, "image/jpeg");
+    try {
+        // Build the form data - You can add other input values to this i.e descriptions, make sure img is appended last
+        let newFile = new File([blob as Blob], `${uuidv4()}_post.jpg`, { type: "image/jpeg" });
+        let formData = new FormData();
+        formData.append("imgfile", newFile);
+        console.log(formData)
+        fetch("http://localhost:3306/api/upload", {
+        method: "POST",
+        body: formData,
+        })
+        .then((res) => res.text()).then(loadPost)
+    } catch (error) {
+        console.log(error)
+    }
+    console.log("We are now here")
+}
+export async function addImage2DB (publication_id: string, image_id: string) {
+    try {
+        await Models.IMG_MOD.create({
+            IMAGE_ID: image_id,
+            IMAGE_STR: `https://storage.googleapis.com/img-anunciate/${publication_id}/${image_id}_post.jpg`,
+        })
+        await Models.RPI_MOD.create({
+            IMAGE_ID: image_id,
+            PUBLICATION_ID: publication_id,
+        })
+    } catch (error) {
+        return error
+    }
+    return
+}
+export function loadPost() {
+    console.log("Here")
+    fetch("http://localhost:3306/api/upload")
+      .then((res) => res.json())
+      .then((x) => {
+        for (let y = 0; y < x[0].length; y++) {
+          console.log("We here", x[0][y].id);
+          const newimg = document.createElement("img");
+          try {
+            newimg.setAttribute(
+                "src",
+                "https://storage.googleapis.com/img-anunciate/" + x[0][y].id
+              );
+              newimg.setAttribute("width", "50");
+              newimg.setAttribute("height", "50");
+              document.getElementById("images")?.appendChild(newimg);
+          } catch (error) {
+            console.log(error)
+          }
+        }
+      });
 }
