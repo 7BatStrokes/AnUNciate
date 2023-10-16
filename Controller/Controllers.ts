@@ -63,7 +63,12 @@ export const postLogin = async (req: Request, res: Response) => {
         Funcs.logIn(data.user, data.password).then((value) => {
             if (typeof(value) == "string") {
                 res.status(401).json({
-                    msg: value,
+                    errors: [{
+                        message: value,
+                        extensions: {
+                            code: "Funcs.logIn - Checking DB info"
+                        }
+                    }]
                 }) 
             } else {
                 res.cookie("access_token", value[0], {
@@ -86,11 +91,15 @@ export const postLogin = async (req: Request, res: Response) => {
                 })
             }
         })
-    } catch (errors) {
-        console.log(errors);
+    } catch (err) {
+        console.log(err);
         res.status(401).json({
-            error: errors,
-            msg: "Error al hacer Log In",
+            errors: [{
+                message: "Error al hacer Log In",
+                extensions: {
+                    code: "Funcs.logIn"
+                }
+            }]
         })
     }  
 }
