@@ -1,9 +1,5 @@
 import { Router } from "express";
 import * as Conts from "../Controller/Controllers";
-import { bucket, multer } from "../Back/Models";
-import { v4 as uuidv4 } from "uuid";
-import { createImg } from "../Functions/Funcs";
-
 
 const router= Router();
 

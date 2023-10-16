@@ -68,17 +68,21 @@ export const postLogin = async (req: Request, res: Response) => {
             } else {
                 res.cookie("access_token", value[0], {
                     httpOnly: true,
+                    secure: true,
                     maxAge: 1000 * 60 * 60 * 24
                 })
                 res.cookie("refresh_token", value[1], {
                     httpOnly: true,
+                    secure: true,
                     maxAge: 7000 * 60 * 60 * 24
                 })
                 res.status(200).send({
                     message: "Success Logging in",
-                    access_token: value[0],
-                    expires_in: 7000 * 60 * 60 * 24,
-                    refresh_token: value[1]
+                    data: {
+                        access_token: value[0],
+                        expires_in: 7000 * 60 * 60 * 24,
+                        refresh_token: value[1]
+                    }
                 })
             }
         })
