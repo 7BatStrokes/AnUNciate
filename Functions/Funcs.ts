@@ -2,6 +2,7 @@ import * as Models from "../Back/Models";
 import {v4 as uuidv4} from 'uuid';
 import { sign } from "jsonwebtoken";
 import {File} from '@web-std/file';
+import { Op, Sequelize } from 'sequelize';
 
 //String Handling
 export function str2hsh(str: string): string {
@@ -125,7 +126,6 @@ export async function createPublication(user_id:string, publication_title:string
         return(error);
     }
 }
-
 export async function updatePublication(uuid: string, publication_title:string, publication_description:string, publication_price: number, publication_quantity: number) {
     try {
         let publication= await findPublication(uuid)
@@ -140,7 +140,6 @@ export async function updatePublication(uuid: string, publication_title:string, 
         console.log(error);
     }
 }
-
 export async function closePublication(uuid: string, state: number) {
     try {
         let publication= await findUser(uuid)
@@ -152,9 +151,33 @@ export async function closePublication(uuid: string, state: number) {
         console.log(error);
     }
 }
-
+export async function findHomePubs(limit?: number) {
+    try {
+        let pubs= await Models.PUB_MOD.findAll({
+            limit: 3,
+            order: [["PUBLICATION_DATE", "DESC"]]
+    })
+    return (pubs)
+    } catch (error) {
+        console.log(error)
+        return(error)
+    }
+}
+export async function searchPubs(offset: number, limit: number, ) {
+    try {
+        let pubs= await Models.PUB_MOD.findAll({
+            limit: limit? limit: 3,
+            offset: offset,
+            order: [["PUBLICATION_DATE", "DESC"]]
+        })
+        return(pubs)
+    } catch (error) {
+        console.log(error)
+       return(error) 
+    }
+}
 let findPublication= async function(uuid: string) {
-    const publication= await Models.PUB_MOD.findByPk(uuid)
+    let publication= await Models.PUB_MOD.findByPk(uuid)
     return publication
 }
 
@@ -173,7 +196,6 @@ export async function createComment(publication_id: string, user_id: string, com
         console.log(error);
     }
 }
-
 export async function findComments(publication_id: string) {
     const comments= await Models.COM_MOD.findAll({
         where: {
@@ -199,7 +221,6 @@ export async function sendChatMessage(publication_id: string, user_1: string, us
         console.log(error);
     }
 }
-
 export async function findChats(publication_id: string, user_1: string, user_2: string) {
     const chats= await Models.CHT_MOD.findAll({
         where: {
@@ -225,7 +246,7 @@ export async function createCategory(category_name: string, category_description
     }
 }
 
-//Classe: IMAGES
+//Classes: IMAGES
 export async function createImg (x: Express.Multer.File) {
     let file = new Blob([x.buffer])  
     console.log(file.size)
@@ -283,4 +304,76 @@ export function loadPost() {
           }
         }
       });
+}
+
+//Classes: REL_PUBSandIMGS
+export async function findPubImgs(pub_id: string) {
+    try {
+        let PubswImgs= await Models.RPI_MOD.findAll({
+            where: {
+                PUBLICATION_ID: pub_id,
+            }
+        }).then(async (res) => {
+            let y: any[] = []
+            for (let i = 0; i < res.length; i++) {
+            let x= await findImagePath(res.at(i)?.getDataValue("IMAGE_ID"))
+            y.push(x)
+            }
+            return (y)
+        }
+        )
+        return(PubswImgs)
+    } catch (error) {
+        console.log(error)
+       return(error) 
+    }
+}
+let findImagePath= async function (uuid: string) {
+    let path= await Models.IMG_MOD.findByPk(uuid)
+    return path!.getDataValue("IMAGE_STR")
+}
+
+//Classes: REL_KEY_PUBS
+export async function findPubswKeys(tags: Array<string>) {
+    try {
+        let tagIDs = await findKeyID(tags)
+        let PubswKeys: any[] = []
+        await Models.RPK_MOD.findAll({
+            where: {
+                KEYWORDS_ID: {
+                    [Op.in] : tagIDs
+                }
+            },
+            group: ['PUBLICATION_ID'],
+            having: Sequelize.literal('COUNT(DISTINCT KEYWORDS_ID) ='+tagIDs.length.toString()),
+        }).then(async (res) => {
+            for (let i = 0; i < res.length; i++) {
+                let x= await res.at(i)?.getDataValue("PUBLICATION_ID")
+                PubswKeys.push(x)
+            }
+        }
+        )
+        if (!PubswKeys[0]) {
+            return null
+        }
+        return(PubswKeys)
+    } catch (error) {
+        console.log(error)
+       return(error) 
+    }  
+}
+let findKeyID= async function (tags: Array<any>) {
+    let res= await Models.KYW_MOD.findAll({
+        where: {
+            KEYWORD_WORD: {
+                [Op.or] : tags
+            },
+        }
+    })
+    let y: any []= []
+    for (let index = 0; index < res.length; index++) {
+        let x= await res.at(index)!.getDataValue("KEYWORDS_ID")
+        y.push(x)
+    }
+    return(y)
 }

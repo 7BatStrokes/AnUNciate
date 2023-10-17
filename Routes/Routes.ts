@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as Conts from "../Controller/Controllers";
+import { getPubImgs } from '../Controller/Controllers';
 
 const router= Router();
 
@@ -16,6 +17,11 @@ router.post("/register", Conts.postRegister);
 
 //Images
 router.get("/upload", Conts.getImage);
+router.get("/pub/:id", Conts.getPubImgs)
 router.post("/upload", Conts.uploadImage);
+
+//Publications
+router.get("/home", Conts.getHomePubs)
+router.get("/find/:tags", Conts.findPubs)
 
 export default router;

@@ -3,6 +3,7 @@ import Multer from "multer";
 import db from "./Connection";
 import { Storage } from "@google-cloud/storage";
 
+//Tables
 export const USR_MOD= db.define("USR_MOD", {
     USER_ID: {
         type: DataTypes.STRING,
@@ -44,8 +45,7 @@ export const USR_MOD= db.define("USR_MOD", {
     updatedAt: false,
     freezeTableName: true,
     tableName: 'USERS'
-  })
-
+})
 export const PUB_MOD= db.define("PUB_MOD", {
     PUBLICATION_ID: {
         type: DataTypes.STRING,
@@ -78,8 +78,7 @@ export const PUB_MOD= db.define("PUB_MOD", {
     updatedAt: false,
     freezeTableName: true,
     tableName: 'PUBLICATIONS'
-  })
-
+})
 export const COM_MOD= db.define("COM_MOD", {
     COMMENT_ID: {
         type: DataTypes.STRING,
@@ -103,8 +102,7 @@ export const COM_MOD= db.define("COM_MOD", {
     updatedAt: false,
     freezeTableName: true,
     tableName: 'COMMENTS'
-  })
-
+})
 export const IMG_MOD= db.define("IMG_MOD", {
     IMAGE_ID: {
         type: DataTypes.TEXT,
@@ -119,10 +117,13 @@ export const IMG_MOD= db.define("IMG_MOD", {
     updatedAt: false,
     freezeTableName: true,
     tableName: 'IMAGES'
-  })
-
+})
 export const KYW_MOD= db.define("KYW_MOD", {
-    KEYWORDS_WORD: {
+    KEYWORDS_ID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
+    KEYWORD_WORD: {
         type: DataTypes.STRING,
     }
 },{
@@ -131,8 +132,7 @@ export const KYW_MOD= db.define("KYW_MOD", {
     updatedAt: false,
     freezeTableName: true,
     tableName: 'KEYWORDS'
-  })
-
+})
 export const CHT_MOD= db.define("CHT_MOD", {
     CHAT_ID: {
         type: DataTypes.STRING,
@@ -162,8 +162,7 @@ export const CHT_MOD= db.define("CHT_MOD", {
     updatedAt: false,
     freezeTableName: true,
     tableName: 'CHATS'
-  });
-
+});
 export const CAT_MOD= db.define("CAT_MOD", {
     CATEGORY_ID: {
         type: DataTypes.STRING,
@@ -181,15 +180,33 @@ export const CAT_MOD= db.define("CAT_MOD", {
     updatedAt: false,
     freezeTableName: true,
     tableName: 'CATEGORY'
-  })
+})
 
 //Relations
 export const RPI_MOD= db.define("RPI_MOD", {
+    ID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
+    PUBLICATION_ID: {
+        type: DataTypes.STRING,
+    },
+    IMAGE_ID: {
+        type: DataTypes.STRING,
+    }
+},{
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    freezeTableName: true,
+    tableName: 'REL_PUBLICATION_IMAGES'
+})
+export const RPC_MOD= db.define("RPC_MOD", {
     PUBLICATION_ID: {
         type: DataTypes.STRING,
         primaryKey: true
     },
-    IMAGE_ID: {
+    CATEGORY_ID: {
         type: DataTypes.STRING,
         primaryKey: true
     }
@@ -198,8 +215,24 @@ export const RPI_MOD= db.define("RPI_MOD", {
     createdAt: false,
     updatedAt: false,
     freezeTableName: true,
-    tableName: 'REL_PUBLICATION_IMAGES'
-  })
+    tableName: 'REL_PUBLICATION_CATEGORY'
+})
+export const RPK_MOD= db.define("RPK_MOD", {
+    KEYWORDS_ID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
+    PUBLICATION_ID: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
+},{
+    timestamps: false,
+    createdAt: false,
+    updatedAt: false,
+    freezeTableName: true,
+    tableName: 'REL_PUBLICATION_KEYWORDS'
+})
 
 
 const projectId = "spatial-cargo-324302"; // Get this from Google Cloud
@@ -207,7 +240,7 @@ const keyFilename = "spatial-cargo-324302-594267ec6279.json"; // Get this from G
 const storage = new Storage({
     projectId,
     keyFilename,
-  });
+});
 export const bucket = storage.bucket("img-anunciate");
 
 export const multer = Multer({
@@ -215,4 +248,4 @@ export const multer = Multer({
     limits: {
       fileSize: 5 * 2000 * 2000
     },
-  });
+});

@@ -234,3 +234,82 @@ export const uploadImage= async (req: Request, res: Response) => {
         res.send("Error:" + error);
     }
 }
+export const getPubImgs= async (req: Request, res: Response) => {
+    try {
+        const pub_id = req.params.id;
+        const imgs= await Funcs.findPubImgs(pub_id);
+        imgs ? res.status(200).send({
+            data: {
+                msg: "Images found",
+                list_of_images: imgs
+            }
+        }) : res.status(401).json({
+            errors: [{
+                message: "No images associated with PUB_ID: "+pub_id,
+                extensions: {
+                    code: "Funcs.pubImgs - Checking DB info"
+                }
+            }]
+        })
+    } catch (error) {
+        res.send("Error:" + error);
+    }
+}
+
+//Publications
+export const getHomePubs = async (req: Request, res: Response) => {
+    try {
+        const pubs= await Funcs.findHomePubs();
+        pubs ? res.status(200).send({
+            data: {
+                msg: "Home Posts found",
+                list_of_pubs: pubs
+            }
+        }) : res.status(401).json({
+            errors: [{
+                message: "No posts were retrieved",
+                extensions: {
+                    code: "Funcs.findHomePubs"
+                }
+            }]
+        })
+    } catch (error) {
+        res.status(401).json({
+            errors: [{
+                message: "Could not connect to DB",
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
+        })
+    } 
+}
+export const findPubs = async (req: Request, res: Response) => {
+    try {
+        const params= req.params.tags.split("+")
+        console.log(params)
+        const pubs= await Funcs.findPubswKeys(params);
+        pubs ? res.status(200).send({
+            data: {
+                msg: "Posts found with tags "+ params,
+                list_of_pubs: pubs
+            }
+        }) : res.status(401).json({
+            errors: [{
+                message: "No posts found with tags " + params,
+                extensions: {
+                    code: "Funcs.findHomePubs"
+                }
+            }]
+        })
+    } catch (error) {
+        res.status(401).json({
+            errors: [{
+                message: "Could not connect to DB",
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
+        })
+    } 
+}
