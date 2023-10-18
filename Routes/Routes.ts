@@ -16,7 +16,6 @@ router.post("/refresh", Conts.refreshToken);
 router.post("/register", Conts.postRegister);
 
 //Images
-router.get("/upload", Conts.getImage);
 router.get("/pub/:id", Conts.getPubImgs)
 router.post("/upload", Conts.uploadImage);
 

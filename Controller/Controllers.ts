@@ -108,11 +108,19 @@ export const postLogOut = async (req: Request, res: Response) => {
         res.cookie("access_token", "", {maxAge: 0})
         res.cookie("refresh_token", "", {maxAge: 0})
         res.status(200).send({
-            msg: "Signed Out"
+            data: {
+                msg: "Signed Out"
+            }
         })
     } catch (error) {
         res.status(401).send({
-            msg: error})
+            errors: [{
+                message: error,
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
+        })   
     }
 }
 export const getAuthenticate= async (req: Request, res: Response) => {
@@ -121,17 +129,32 @@ export const getAuthenticate= async (req: Request, res: Response) => {
         const payload: any = verify(access_token, "access_secret")
         if(!payload) {
             return (res.status(401).send({
-                message: "Unauthenticated"
+                errors: [{
+                    message: "No tokens found",
+                    extensions: {
+                        code: "Verifying tokens"
+                    }
+                }]
             }))
         }
         const user= await Funcs.authUser(payload.id)
         user? res.status(200).send(user): res.status(401).send({
-            msg: "Unauthenticated"
-        })
+            errors: [{
+                message: "Unauthenticated",
+                extensions: {
+                    code: "Funcs.authUser"
+                }
+            }]
+        }) 
     } catch (error) {
         return(res.status(401).send({
-            msg: "Unauthenticated"
-        }))
+            errors: [{
+                message: error,
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
+        }) )
     }
 }
 export const refreshToken= async (req: Request, res: Response) => {
@@ -140,7 +163,12 @@ export const refreshToken= async (req: Request, res: Response) => {
         const payload: any = verify(refresh_token, "refresh_secret")
         if(!payload) {
             return (res.status(401).send({
-                message: "Unauthenticated"
+                errors: [{
+                    message: "Token is null",
+                    extensions: {
+                        code: "Verifyig tokens"
+                    }
+                }]
             }))
         }
         let access_token= sign({
@@ -150,12 +178,20 @@ export const refreshToken= async (req: Request, res: Response) => {
             httpOnly: true,
             maxAge: 1000 * 60 * 60 * 24
         })
-        res.send({
-            msg: "New Access Token was given"}
-        )
+        res.status(200).send({
+            data: {
+                msg: "New Access Token was given",
+                access_token: access_token
+            }
+        })
     } catch (error) {
         return(res.status(401).send({
-            msg: "Unauthenticated"
+            errors: [{
+                message: error,
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
         }))
     }
 
@@ -167,71 +203,94 @@ export const postRegister = async (req: Request, res: Response) => {
             console.log(value)
             if (typeof(value) == "string") {
                 res.status(401).json({
-                    msg: value,
+                    errors: [{
+                        message: value,
+                        extensions: {
+                            code: "Funcs.createUser"
+                        }
+                    }]
                 })
             } else {
                 res.status(200).json({
-                    msg: "Succesfully Created",
+                    data: {
+                        message: "Succesfully Created",
+                        new_user_id: value[0]
+                    }
                 });
             }
         })
-    } catch (errors) {
-        console.log(errors);
+    } catch (error) {
+        console.log(error);
         res.status(401).json({
-            error: errors,
-            msg: "Error al hacer Register",
+            errors: [{
+                message: error,
+                extensions: {
+                    code: "Controller issue"
+                }}]
         })
     }  
 }
 
 //Images
-export const getImage= async (req: Request, res: Response) => {
-    try {
-        const [files] = await Models.bucket.getFiles();
-        res.send([files]);
-        console.log("Success");
-    } catch (error) {
-        res.send("Error:" + error);
-    }
-}
 export const uploadImage= async (req: Request, res: Response) => {
     try {
         var upload = Models.multer.fields([{name: 'image'}, {name: 'publication_id'}])
         upload(req, res, function (err) {
             if (err) {
               res.status(401).send({
-                msg: "Could not upload image",
-                body: err
-              })
+                errors: [{
+                    message: err,
+                    extensions: {
+                        code: "Could not upload image"
+                    }}]
+            })
             } else {
                 try {
                     if (req.files) {
                         const files= req.files as {[fieldname: string]: Express.Multer.File[]};
                         const img= files['image'][0];
                         let img_id= uuidv4()
-                        let pub= req.body.publication_id
                         const blob = Models.bucket.file(`${req.body.publication_id+"/"+img_id}_post.jpg`);
                         const blobStream = blob.createWriteStream();
                         blobStream.end(img.buffer);
                         try {
                             Funcs.addImage2DB(req.body.publication_id, img_id)
                             res.status(200).send({
-                                msg: "Everything went right!"
+                                data: {
+                                    msg: "Everything went right!",
+                                    image_path: blob
+                                }
                         })
                         } catch (error) {
                             res.status(401).send({
-                                msg: err
-                        })
+                                errors: [{
+                                    message: err,
+                                    extensions: {
+                                        code: "Could not connect to GCP"
+                                    }}]
+                            })
                         }
                         //createImg(req.file)
                         } else throw "error with img";
                 } catch (error) {
-                        res.status(401).send(error);
+                        res.status(401).send({
+                            errors: [{
+                                message: error,
+                                extensions: {
+                                    code: "No files found"
+                                }}]
+                        });
                 }
             }
           })
     } catch (error) {
-        res.send("Error:" + error);
+        res.status(401).send({
+            errors: [{
+                message: error,
+                extensions: {
+                    code: "Coontroller issue"
+                }}]
+        });
     }
 }
 export const getPubImgs= async (req: Request, res: Response) => {
@@ -298,7 +357,7 @@ export const findPubs = async (req: Request, res: Response) => {
             errors: [{
                 message: "No posts found with tags " + params,
                 extensions: {
-                    code: "Funcs.findHomePubs"
+                    code: "Funcs.findPubswKeys"
                 }
             }]
         })

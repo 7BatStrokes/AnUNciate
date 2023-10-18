@@ -23,8 +23,9 @@ export async function createUser(name:string, lastname:string, mail:string, pass
         if (usuario) {
             return("User with that email already exists")
         } else {
+            let id: string= uuidv4()
             await Models.USR_MOD.create({
-                USER_ID: uuidv4(),
+                USER_ID: id,
                 USER_NAME: name,
                 USER_LASTNAME: lastname,
                 USER_MAIL: mail,
@@ -37,6 +38,7 @@ export async function createUser(name:string, lastname:string, mail:string, pass
                 USER_TOKEN: "0",
                 USER_SINCE: Date.now()
         })
+        return([id])
         }
     } catch (error) {
         return(error);
@@ -337,6 +339,9 @@ let findImagePath= async function (uuid: string) {
 export async function findPubswKeys(tags: Array<string>) {
     try {
         let tagIDs = await findKeyID(tags)
+        if (!tagIDs) {
+            return null
+        }
         let PubswKeys: any[] = []
         await Models.RPK_MOD.findAll({
             where: {
@@ -374,6 +379,9 @@ let findKeyID= async function (tags: Array<any>) {
     for (let index = 0; index < res.length; index++) {
         let x= await res.at(index)!.getDataValue("KEYWORDS_ID")
         y.push(x)
+    }
+    if (!y[0]) {
+        return null
     }
     return(y)
 }
