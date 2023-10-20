@@ -61,7 +61,7 @@ export const postLogin = async (req: Request, res: Response) => {
     const data = req.body;
     try {
         Funcs.logIn(data.user, data.password).then((value) => {
-            if (typeof(value) == "string") {
+            if (typeof(value) != "object") {
                 res.status(401).json({
                     errors: [{
                         message: value,
@@ -74,7 +74,7 @@ export const postLogin = async (req: Request, res: Response) => {
                 res.cookie("access_token", value[0], {
                     httpOnly: true,
                     secure: true,
-                    maxAge: 1000 * 60 * 60 * 24
+                    maxAge: 60 * 15 *1000
                 })
                 res.cookie("refresh_token", value[1], {
                     httpOnly: true,
@@ -86,7 +86,8 @@ export const postLogin = async (req: Request, res: Response) => {
                     data: {
                         access_token: value[0],
                         expires_in: 7000 * 60 * 60 * 24,
-                        refresh_token: value[1]
+                        refresh_token: value[1],
+                        user: value[2]
                     }
                 })
             }
@@ -137,15 +138,19 @@ export const getAuthenticate= async (req: Request, res: Response) => {
                 }]
             }))
         }
-        const user= await Funcs.authUser(payload.id)
-        user? res.status(200).send(user): res.status(401).send({
+        const user= await Funcs.authUser(undefined, payload.id)
+        user? res.status(200).send({
+            data: {
+                user: user
+            }
+        }): res.status(401).send({
             errors: [{
                 message: "Unauthenticated",
                 extensions: {
                     code: "Funcs.authUser"
                 }
             }]
-        }) 
+        })
     } catch (error) {
         return(res.status(401).send({
             errors: [{

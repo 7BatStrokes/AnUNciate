@@ -2,7 +2,7 @@ import * as Models from "../Back/Models";
 import {v4 as uuidv4} from 'uuid';
 import { sign } from "jsonwebtoken";
 import {File} from '@web-std/file';
-import { Op, Sequelize } from 'sequelize';
+import { Model, Op, Sequelize } from 'sequelize';
 
 //String Handling
 export function str2hsh(str: string): string {
@@ -44,21 +44,19 @@ export async function createUser(name:string, lastname:string, mail:string, pass
         return(error);
     }
 }
-export async function updateUser(uuid: string, password: string, name?:string, lastname?:string, photo?: string, faculty?: string,city?: string) {
+export async function updateUser(token: string, password: string, name?:string, lastname?:string, photo?: string, faculty?: string,city?: string) {
     try {
-        let usuario= await findUser(uuid)
-        if (str2hsh(password) == usuario?.getDataValue("USER_PASSWORD")) {
-            console.log(name, faculty)
-            usuario.set({
-                USER_NAME: name? name: usuario.getDataValue("USER_NAME"),
-                USER_LASTNAME: lastname? lastname: usuario.getDataValue("USER_LASTNAME"), 
-                USER_PASSWORD: str2hsh(password),
-                USER_PHOTO: photo? photo: usuario.getDataValue("USER_PHOTO"),
-                USER_FACULTY: faculty? faculty: usuario.getDataValue("USER_FACULTY"),
-                USER_CITY: city? city : usuario.getDataValue("USER_CITY"),
-            })
-            usuario.save();
-        }
+        let usuario= await authUser(token)
+        console.log(name, faculty)
+        usuario.set({
+            USER_NAME: name? name: usuario.getDataValue("USER_NAME"),
+            USER_LASTNAME: lastname? lastname: usuario.getDataValue("USER_LASTNAME"), 
+            USER_PASSWORD: str2hsh(password),
+            USER_PHOTO: photo? photo: usuario.getDataValue("USER_PHOTO"),
+            USER_FACULTY: faculty? faculty: usuario.getDataValue("USER_FACULTY"),
+            USER_CITY: city? city : usuario.getDataValue("USER_CITY"),
+        })
+        usuario.save();
     } catch (error) {
         console.log(error);
     }
@@ -68,13 +66,8 @@ export async function logIn(mail: string, password: string) {
         let usuario= await findUser(undefined, mail)
         if (usuario) {
             if (str2hsh(password) == usuario?.getDataValue("USER_PASSWORD")) {
-                let access_token= sign({
-                    id: usuario.getDataValue("USER_ID")
-                },"access_secret", {expiresIn: "5m"});
-                let refresh_token= sign({
-                    id: usuario.getDataValue("USER_ID")
-                },"refresh_secret", {expiresIn: "1w"});
-                return([access_token, refresh_token])
+                let tokens= await updateToken(usuario)
+                return([tokens[0], tokens[1], await authUser(usuario.getDataValue("USER_TOKEN"))])
             } else {
                 return("Not the correct password")
             }
@@ -85,29 +78,52 @@ export async function logIn(mail: string, password: string) {
         return(error);
     }
 }
-export async function authUser(uuid: string) {
+export async function authUser(token?: string, uuid?: string) {
     try {
-        if(uuid) {
+        if(token) {
             const usuario= await Models.USR_MOD.findOne({
-                where: {USER_ID: uuid},
+                where: {USER_TOKEN: token},
                 attributes: {
                     exclude: 
-                        ["USER_PASSWORD"]
+                        ["USER_PASSWORD", "USER_TOKEN"]
                 }
             })
-            return usuario}
+            return usuario
+        }
+        const usuario= await Models.USR_MOD.findOne({
+            where: {USER_ID: uuid},
+            attributes: {
+                exclude: 
+                    ["USER_PASSWORD", "USER_TOKEN"]
+            }
+        })
+        return usuario
+    } catch (error) {
+        return(error);
+    }
+}
+let updateToken= async function(user: Model <any,any>) {
+    try {
+        let access_token= sign({
+            id: user.getDataValue("USER_ID")
+        },"access_secret", {expiresIn: "15m"});
+
+        let refresh_token= sign({
+            id: user.getDataValue("USER_ID")
+        },"refresh_secret", {expiresIn: "1w"});
+        await user.set({"USER_TOKEN" : refresh_token}).save()
+        return([access_token, refresh_token])
     } catch (error) {
         return(error);
     }
 }
 let findUser= async function(uuid?: string, mail?: string) {
     if(uuid) {
-        const usuario= await Models.USR_MOD.findByPk(uuid)
-        return usuario
-    } else if (mail) {
-        const usuario= await Models.USR_MOD.findOne({where: {USER_MAIL: mail}})
+        let usuario= await Models.USR_MOD.findByPk(uuid)
         return usuario
     }
+    let usuario= await Models.USR_MOD.findOne({where: {USER_MAIL: mail}})
+    return usuario
 }
 
 //Classes: PUBLICATION

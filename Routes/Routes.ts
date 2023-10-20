@@ -1,6 +1,5 @@
 import { Router } from "express";
 import * as Conts from "../Controller/Controllers";
-import { getPubImgs } from '../Controller/Controllers';
 
 const router= Router();
 

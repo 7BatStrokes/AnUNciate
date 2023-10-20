@@ -39,6 +39,9 @@ export const USR_MOD= db.define("USR_MOD", {
     USER_SINCE: {
         type: DataTypes.DATE,
     },
+    USER_TOKEN: {
+        type: DataTypes.STRING
+    }
 }, {
     timestamps: false,
     createdAt: false,
