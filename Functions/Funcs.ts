@@ -1,6 +1,7 @@
+import { Request, Response } from "express";
 import * as Models from "../Back/Models";
 import {v4 as uuidv4} from 'uuid';
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 import {File} from '@web-std/file';
 import { Model, Op, Sequelize } from 'sequelize';
 
@@ -44,14 +45,13 @@ export async function createUser(name:string, lastname:string, mail:string, pass
         return(error);
     }
 }
-export async function updateUser(token: string, password: string, name?:string, lastname?:string, photo?: string, faculty?: string,city?: string) {
+export async function updateUser(req: Request,  name?:string, lastname?:string, photo?: string, faculty?: string,city?: string) {
     try {
-        let usuario= await authUser(token)
+        let usuario= await isLoggedIn(req)
         console.log(name, faculty)
         usuario.set({
             USER_NAME: name? name: usuario.getDataValue("USER_NAME"),
             USER_LASTNAME: lastname? lastname: usuario.getDataValue("USER_LASTNAME"), 
-            USER_PASSWORD: str2hsh(password),
             USER_PHOTO: photo? photo: usuario.getDataValue("USER_PHOTO"),
             USER_FACULTY: faculty? faculty: usuario.getDataValue("USER_FACULTY"),
             USER_CITY: city? city : usuario.getDataValue("USER_CITY"),
@@ -67,7 +67,7 @@ export async function logIn(mail: string, password: string) {
         if (usuario) {
             if (str2hsh(password) == usuario?.getDataValue("USER_PASSWORD")) {
                 let tokens= await updateToken(usuario)
-                return([tokens[0], tokens[1], await authUser(usuario.getDataValue("USER_TOKEN"))])
+                return([tokens[0], tokens[1], await authUser(usuario.getDataValue("USER_ID"))])
             } else {
                 return("Not the correct password")
             }
@@ -78,28 +78,28 @@ export async function logIn(mail: string, password: string) {
         return(error);
     }
 }
-export async function authUser(token?: string, uuid?: string) {
+export async function authUser(uuid: string) {
     try {
-        if(token) {
-            const usuario= await Models.USR_MOD.findOne({
-                where: {USER_TOKEN: token},
-                attributes: {
-                    exclude: 
-                        ["USER_PASSWORD", "USER_TOKEN"]
-                }
-            })
-            return usuario
-        }
         const usuario= await Models.USR_MOD.findOne({
             where: {USER_ID: uuid},
             attributes: {
                 exclude: 
-                    ["USER_PASSWORD", "USER_TOKEN"]
+                    ["USER_PASSWORD"]
             }
         })
         return usuario
     } catch (error) {
         return(error);
+    }
+}
+export async function isLoggedIn (req: Request) : Promise<any> {
+    try { 
+        const payload: any = verify(req.cookies["access_token"], "access_secret")
+        const user: object= await authUser(payload.id)
+        return(user)
+    } catch (error) {
+        console.log(error)
+        return("User Unauthenticated")
     }
 }
 let updateToken= async function(user: Model <any,any>) {
@@ -111,7 +111,6 @@ let updateToken= async function(user: Model <any,any>) {
         let refresh_token= sign({
             id: user.getDataValue("USER_ID")
         },"refresh_secret", {expiresIn: "1w"});
-        await user.set({"USER_TOKEN" : refresh_token}).save()
         return([access_token, refresh_token])
     } catch (error) {
         return(error);
@@ -265,8 +264,8 @@ export async function createCategory(category_name: string, category_description
 }
 
 //Classes: IMAGES
-export async function createImg (x: Express.Multer.File) {
-    let file = new Blob([x.buffer])  
+let createImg= async function (img: Express.Multer.File) {
+    let file = new Blob([img.buffer])  
     console.log(file.size)
     // Create new file so we can rename the file
     let blob = file?.slice(0, file.size, "image/jpeg");
@@ -286,15 +285,22 @@ export async function createImg (x: Express.Multer.File) {
     }
     console.log("We are now here")
 }
-export async function addImage2DB (publication_id: string, image_id: string) {
+export async function addImage2DB (uuid: string, image_id: string, user?: string) {
     try {
+        let path : string= `https://storage.googleapis.com/img-anunciate/${user}/${image_id}_post.jpg`
+        user? path : path= `https://storage.googleapis.com/img-anunciate/${uuid}/${image_id}_post.jpg`
         await Models.IMG_MOD.create({
             IMAGE_ID: image_id,
-            IMAGE_STR: `https://storage.googleapis.com/img-anunciate/${publication_id}/${image_id}_post.jpg`,
+            IMAGE_STR: path,
         })
+        user? await Models.USR_MOD.findByPk(user).then((v) => {
+            v?.set({
+                USER_PHOTO: path,
+            }).save()
+        }) : 
         await Models.RPI_MOD.create({
             IMAGE_ID: image_id,
-            PUBLICATION_ID: publication_id,
+            PUBLICATION_ID: uuid,
         })
     } catch (error) {
         return error

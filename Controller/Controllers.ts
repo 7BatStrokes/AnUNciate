@@ -74,7 +74,7 @@ export const postLogin = async (req: Request, res: Response) => {
                 res.cookie("access_token", value[0], {
                     httpOnly: true,
                     secure: true,
-                    maxAge: 60 * 15 *1000
+                    maxAge: 60 * 15 * 1000
                 })
                 res.cookie("refresh_token", value[1], {
                     httpOnly: true,
@@ -126,30 +126,21 @@ export const postLogOut = async (req: Request, res: Response) => {
 }
 export const getAuthenticate= async (req: Request, res: Response) => {
     try {
-        const access_token= req.cookies["access_token"]
-        const payload: any = verify(access_token, "access_secret")
-        if(!payload) {
+        const user = await Funcs.isLoggedIn(req)
+        if(typeof(user)!= "object") {
             return (res.status(401).send({
                 errors: [{
-                    message: "No tokens found",
+                    message: user,
                     extensions: {
-                        code: "Verifying tokens"
+                        code: "Funcs.isLoggedIn"
                     }
                 }]
             }))
         }
-        const user= await Funcs.authUser(undefined, payload.id)
-        user? res.status(200).send({
+        res.status(200).send({
             data: {
                 user: user
             }
-        }): res.status(401).send({
-            errors: [{
-                message: "Unauthenticated",
-                extensions: {
-                    code: "Funcs.authUser"
-                }
-            }]
         })
     } catch (error) {
         return(res.status(401).send({
@@ -178,10 +169,11 @@ export const refreshToken= async (req: Request, res: Response) => {
         }
         let access_token= sign({
             id: payload.id
-        },"access_secret", {expiresIn: "5m"});
+        },"access_secret", {expiresIn: "15m"});
         res.cookie("access_token", access_token, {
             httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24
+            secure: true,
+            maxAge: 1000 * 60 * 15
         })
         res.status(200).send({
             data: {
@@ -199,7 +191,6 @@ export const refreshToken= async (req: Request, res: Response) => {
             }]
         }))
     }
-
 }
 export const postRegister = async (req: Request, res: Response) => {
     const data = req.body;
@@ -239,7 +230,7 @@ export const postRegister = async (req: Request, res: Response) => {
 //Images
 export const uploadImage= async (req: Request, res: Response) => {
     try {
-        var upload = Models.multer.fields([{name: 'image'}, {name: 'publication_id'}])
+        var upload = Models.multer.fields([{name: 'image'}, {name: 'uuid'}])
         upload(req, res, function (err) {
             if (err) {
               res.status(401).send({
@@ -255,15 +246,23 @@ export const uploadImage= async (req: Request, res: Response) => {
                         const files= req.files as {[fieldname: string]: Express.Multer.File[]};
                         const img= files['image'][0];
                         let img_id= uuidv4()
-                        const blob = Models.bucket.file(`${req.body.publication_id+"/"+img_id}_post.jpg`);
+                        let path : string;
+                            if (req.body.user) {
+                                Funcs.addImage2DB(req.body.uuid, img_id, req.body.user)
+                                path= `${req.body.user+"/"+img_id}`
+                            } else {
+                                Funcs.addImage2DB(req.body.uuid, img_id)
+                                path = `${req.body.uuid+"/"+img_id}`
+                            }
+                        const blob = Models.bucket.file(`${path}_post.jpg`);
                         const blobStream = blob.createWriteStream();
                         blobStream.end(img.buffer);
                         try {
-                            Funcs.addImage2DB(req.body.publication_id, img_id)
+                            
                             res.status(200).send({
                                 data: {
                                     msg: "Everything went right!",
-                                    image_path: blob
+                                    image_path: `https://storage.googleapis.com/img-anunciate/${path}_post.jpg`
                                 }
                         })
                         } catch (error) {
@@ -275,7 +274,6 @@ export const uploadImage= async (req: Request, res: Response) => {
                                     }}]
                             })
                         }
-                        //createImg(req.file)
                         } else throw "error with img";
                 } catch (error) {
                         res.status(401).send({
