@@ -45,14 +45,13 @@ export async function createUser(name:string, lastname:string, mail:string, pass
         return(error);
     }
 }
-export async function updateUser(req: Request,  name?:string, lastname?:string, photo?: string, faculty?: string,city?: string) {
+export async function updateUser(req: Request,  name?:string, lastname?:string, faculty?: string,city?: string) {
     try {
-        let usuario= await isLoggedIn(req)
-        console.log(name, faculty)
+        let usuario: Model <any, any>= await isLoggedIn(req)
+        console.log(usuario.getDataValue("USER_ID"))
         usuario.set({
             USER_NAME: name? name: usuario.getDataValue("USER_NAME"),
-            USER_LASTNAME: lastname? lastname: usuario.getDataValue("USER_LASTNAME"), 
-            USER_PHOTO: photo? photo: usuario.getDataValue("USER_PHOTO"),
+            USER_LASTNAME: lastname? lastname: usuario.getDataValue("USER_LASTNAME"),
             USER_FACULTY: faculty? faculty: usuario.getDataValue("USER_FACULTY"),
             USER_CITY: city? city : usuario.getDataValue("USER_CITY"),
         })
@@ -143,16 +142,23 @@ export async function createPublication(user_id:string, publication_title:string
         return(error);
     }
 }
-export async function updatePublication(uuid: string, publication_title:string, publication_description:string, publication_price: number, publication_quantity: number) {
+export async function updatePublication(req: Request, uuid: string, publication_title?:string, publication_description?:string, publication_price?: number, publication_quantity?: number) {
     try {
-        let publication= await findPublication(uuid)
-        publication?.set({
-            PUBLICATION_TITLE: publication_title? publication_title: publication.getDataValue("PUBLICATION_TITLE"),
-            PUBLICATION_DESCRIPTION: publication_description? publication_description : publication.getDataValue("PUBLICATION_DESCRIPTION"),
-            PUBLICATION_PRICE: publication_price? publication_price : publication.getDataValue("PUBLICATION_PRICE"),
-            PUBLICATION_QUANTITY: publication_quantity? publication_quantity : publication.getDataValue("PUBLICATION_QUANTITY"),
-        })
-        publication?.save()
+        let usuario: Model <any, any>= await isLoggedIn(req)
+        if (usuario) {
+            let publication= await findPublication(uuid)
+            if (publication_price) {
+                addDiscount(publication!, publication_price)
+            }
+            publication?.set({
+                PUBLICATION_TITLE: publication_title? publication_title: publication.getDataValue("PUBLICATION_TITLE"),
+                PUBLICATION_DESCRIPTION: publication_description? publication_description : publication.getDataValue("PUBLICATION_DESCRIPTION"),
+                PUBLICATION_PRICE: publication_price? publication_price : publication.getDataValue("PUBLICATION_PRICE"),
+                PUBLICATION_QUANTITY: publication_quantity? publication_quantity : publication.getDataValue("PUBLICATION_QUANTITY"),
+            })
+            publication?.save()
+        }
+        return("User is not logged In")
     } catch (error) {
         console.log(error);
     }
@@ -180,11 +186,11 @@ export async function findHomePubs(limit?: number) {
         return(error)
     }
 }
-export async function searchPubs(offset: number, limit: number, ) {
+export async function searchPubs(offset?: number, limit?: number) {
     try {
         let pubs= await Models.PUB_MOD.findAll({
             limit: limit? limit: 3,
-            offset: offset,
+            offset: offset? offset: 0,
             order: [["PUBLICATION_DATE", "DESC"]]
         })
         return(pubs)
@@ -193,11 +199,44 @@ export async function searchPubs(offset: number, limit: number, ) {
        return(error) 
     }
 }
-let findPublication= async function(uuid: string) {
+export async function checkDiscounted() {
+    try {
+        let discounted: any[] = []
+        let pubs= await Models.PUB_MOD.findAll({
+            where: {
+                DISCOUNT: {
+                [Op.ne] : null
+            }
+            },
+            order: [["PUBLICATION_DATE", "DESC"]]
+        })
+        pubs.forEach((value) => {
+            let price: number= value.getDataValue("PUBLICATION_PRICE")
+            let reduc_price: number= value.getDataValue("DISCOUNT")
+            let discount= 100-(price*100/(price+reduc_price))
+            let data= `{"prev_price": "${price+reduc_price}", "price": "${price}", "discount": "${discount}"}`
+            discounted.push([value, JSON.parse(data)])
+        })
+        return(discounted)
+    } catch (error) {
+        console.log(error)
+       return(error) 
+    }
+}
+export async function findPublication (uuid: string) {
     let publication= await Models.PUB_MOD.findByPk(uuid)
     return publication
 }
-
+let addDiscount= async function(pub: Model <any,any>, new_price: number) {
+    let discount= pub.getDataValue("PUBLICATION_PRICE") - new_price
+    if (discount<= 0) {
+        return
+    }
+    pub.set({
+        DISCOUNT: discount
+    })
+    pub.save()
+}
 //Classes: COMMENTS
 export async function createComment(publication_id: string, user_id: string, comment_text: string, comment_date: Date) {
     try {
@@ -285,7 +324,7 @@ let createImg= async function (img: Express.Multer.File) {
     }
     console.log("We are now here")
 }
-export async function addImage2DB (uuid: string, image_id: string, user?: string) {
+export async function addImage2DB (image_id: string, user?: string, uuid?: string,) {
     try {
         let path : string= `https://storage.googleapis.com/img-anunciate/${user}/${image_id}_post.jpg`
         user? path : path= `https://storage.googleapis.com/img-anunciate/${uuid}/${image_id}_post.jpg`
@@ -357,7 +396,7 @@ let findImagePath= async function (uuid: string) {
     return path!.getDataValue("IMAGE_STR")
 }
 
-//Classes: REL_KEY_PUBS
+//Classes: REL_KEYandPUBS
 export async function findPubswKeys(tags: Array<string>) {
     try {
         let tagIDs = await findKeyID(tags)

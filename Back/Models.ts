@@ -72,6 +72,9 @@ export const PUB_MOD= db.define("PUB_MOD", {
     PUBLICATION_QUANTITY: {
         type: DataTypes.INTEGER,
     },
+    DISCOUNT: {
+        type: DataTypes.INTEGER
+    }
 }, {
     timestamps: false,
     createdAt: false,
@@ -95,7 +98,7 @@ export const COM_MOD= db.define("COM_MOD", {
     },
     COMMENT_DATE: {
         type: DataTypes.TIME,
-    }
+    },
 },{
     timestamps: false,
     createdAt: false,

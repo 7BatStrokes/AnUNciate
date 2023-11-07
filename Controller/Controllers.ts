@@ -35,16 +35,26 @@ export const postUsuario = async (req: Request, res: Response) => {
         })
     }
 }
-export const putUsuario = (req: Request, res: Response) => {
-    
-    const {body}= req;
-    const {id}= req.params;
-    
-    res.json({
-        msg: "putUsuarios",
-        body,
-        id
-    })
+export const putUsuario = async (req: Request, res: Response) => {
+    const bod= req.body    
+    try {
+        console.log(bod.USER_NAME, bod.USER_LASTNAME, bod.USER_FACULTY, bod.USER_CITY)
+        Funcs.updateUser(req, bod.USER_NAME, bod.USER_LASTNAME, bod.USER_FACULTY, bod.USER_CITY)
+        res.status(200).send({
+            data: {
+                msg: "Succesfully updated"
+            }
+        })
+    } catch (error) {
+        res.status(401).json({
+            errors: [{
+                message: "Could not connect to DB",
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
+        })
+    } 
 }
 export const deleteUsuario = (req: Request, res: Response) => {
     
@@ -248,17 +258,16 @@ export const uploadImage= async (req: Request, res: Response) => {
                         let img_id= uuidv4()
                         let path : string;
                             if (req.body.user) {
-                                Funcs.addImage2DB(req.body.uuid, img_id, req.body.user)
+                                Funcs.addImage2DB(img_id, req.body.user, req.body.uuid)
                                 path= `${req.body.user+"/"+img_id}`
                             } else {
-                                Funcs.addImage2DB(req.body.uuid, img_id)
+                                Funcs.addImage2DB(img_id, req.body.uuid)
                                 path = `${req.body.uuid+"/"+img_id}`
                             }
                         const blob = Models.bucket.file(`${path}_post.jpg`);
                         const blobStream = blob.createWriteStream();
                         blobStream.end(img.buffer);
                         try {
-                            
                             res.status(200).send({
                                 data: {
                                     msg: "Everything went right!",
@@ -346,6 +355,35 @@ export const getHomePubs = async (req: Request, res: Response) => {
         })
     } 
 }
+export const getPub = async (req: Request, res: Response) => {
+    try {
+        const params= req.params.id
+        console.log(params)
+        const pub= await Funcs.findPublication(params);
+        pub ? res.status(200).send({
+            data: {
+                msg: "Post Found",
+                pub: pub
+            }
+        }) : res.status(401).json({
+            errors: [{
+                message: "No post was retrieved",
+                extensions: {
+                    code: "Funcs.findPublication"
+                }
+            }]
+        })
+    } catch (error) {
+        res.status(401).json({
+            errors: [{
+                message: "Could not connect to DB",
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
+        })
+    } 
+}
 export const findPubs = async (req: Request, res: Response) => {
     try {
         const params= req.params.tags.split("+")
@@ -361,6 +399,33 @@ export const findPubs = async (req: Request, res: Response) => {
                 message: "No posts found with tags " + params,
                 extensions: {
                     code: "Funcs.findPubswKeys"
+                }
+            }]
+        })
+    } catch (error) {
+        res.status(401).json({
+            errors: [{
+                message: "Could not connect to DB",
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
+        })
+    } 
+}
+export const getSales = async (req: Request, res: Response) => {
+    try {
+        const pubs= await Funcs.checkDiscounted();
+        pubs ? res.status(200).send({
+            data: {
+                msg: "Posts found with discounts",
+                list_of_pubs: pubs
+            }
+        }) : res.status(401).json({
+            errors: [{
+                message: "No posts found with discount ",
+                extensions: {
+                    code: "Funcs.checkDiscounted"
                 }
             }]
         })

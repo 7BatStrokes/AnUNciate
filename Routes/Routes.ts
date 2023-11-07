@@ -4,7 +4,7 @@ import * as Conts from "../Controller/Controllers";
 const router= Router();
 
 //User Management
-router.put("/id/:id", Conts.putUsuario);
+router.put("/user/:id", Conts.putUsuario);
 router.delete("/id/:id", Conts.deleteUsuario);
 
 //Login and Register
@@ -15,11 +15,13 @@ router.post("/refresh", Conts.refreshToken);
 router.post("/register", Conts.postRegister);
 
 //Images
-router.get("/pub/:id", Conts.getPubImgs)
+router.get("/images/pub/:id", Conts.getPubImgs)
 router.post("/upload", Conts.uploadImage);
 
 //Publications
 router.get("/home", Conts.getHomePubs)
 router.get("/find/:tags", Conts.findPubs)
+router.get("/sales", Conts.getSales)
+router.get("/pub/:id", Conts.getPub)
 
 export default router;
