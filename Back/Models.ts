@@ -72,7 +72,7 @@ export const PUB_MOD= db.define("PUB_MOD", {
     PUBLICATION_QUANTITY: {
         type: DataTypes.INTEGER,
     },
-    DISCOUNT: {
+    PUBLICATION_DISCOUNT: {
         type: DataTypes.INTEGER
     }
 }, {

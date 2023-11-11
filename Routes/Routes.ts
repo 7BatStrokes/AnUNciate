@@ -11,17 +11,18 @@ router.delete("/id/:id", Conts.deleteUsuario);
 router.post("/login", Conts.postLogin);
 router.post("/logout", Conts.postLogOut);
 router.get("/auth", Conts.getAuthenticate);
-router.post("/refresh", Conts.refreshToken);
+router.post("/refresh", Conts.postRefreshToken);
 router.post("/register", Conts.postRegister);
 
 //Images
 router.get("/images/pub/:id", Conts.getPubImgs)
-router.post("/upload", Conts.uploadImage);
+router.post("/upload", Conts.postImage);
 
 //Publications
 router.get("/home", Conts.getHomePubs)
-router.get("/find/:tags", Conts.findPubs)
+router.get("/find/:tags", Conts.getPubswTags)
 router.get("/sales", Conts.getSales)
-router.get("/pub/:id", Conts.getPub)
+router.get("/pub/:id", Conts.getPubInfo)
+router.get("/category", Conts.getPubswCat);
 
 export default router;

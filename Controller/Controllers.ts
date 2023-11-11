@@ -163,7 +163,7 @@ export const getAuthenticate= async (req: Request, res: Response) => {
         }) )
     }
 }
-export const refreshToken= async (req: Request, res: Response) => {
+export const postRefreshToken= async (req: Request, res: Response) => {
     try {
         const refresh_token= req.cookies["refresh_token"]
         const payload: any = verify(refresh_token, "refresh_secret")
@@ -238,7 +238,7 @@ export const postRegister = async (req: Request, res: Response) => {
 }
 
 //Images
-export const uploadImage= async (req: Request, res: Response) => {
+export const postImage= async (req: Request, res: Response) => {
     try {
         var upload = Models.multer.fields([{name: 'image'}, {name: 'uuid'}])
         upload(req, res, function (err) {
@@ -308,7 +308,7 @@ export const uploadImage= async (req: Request, res: Response) => {
 export const getPubImgs= async (req: Request, res: Response) => {
     try {
         const pub_id = req.params.id;
-        const imgs= await Funcs.findPubImgs(pub_id);
+        const imgs= await Funcs.findImgswPub(pub_id);
         imgs ? res.status(200).send({
             data: {
                 msg: "Images found",
@@ -330,7 +330,7 @@ export const getPubImgs= async (req: Request, res: Response) => {
 //Publications
 export const getHomePubs = async (req: Request, res: Response) => {
     try {
-        const pubs= await Funcs.findHomePubs();
+        const pubs= await Funcs.searchPubs();
         pubs ? res.status(200).send({
             data: {
                 msg: "Home Posts found",
@@ -355,11 +355,11 @@ export const getHomePubs = async (req: Request, res: Response) => {
         })
     } 
 }
-export const getPub = async (req: Request, res: Response) => {
+export const getPubInfo = async (req: Request, res: Response) => {
     try {
         const params= req.params.id
         console.log(params)
-        const pub= await Funcs.findPublication(params);
+        const pub= await Funcs.pubInfo(params);
         pub ? res.status(200).send({
             data: {
                 msg: "Post Found",
@@ -384,7 +384,7 @@ export const getPub = async (req: Request, res: Response) => {
         })
     } 
 }
-export const findPubs = async (req: Request, res: Response) => {
+export const getPubswTags = async (req: Request, res: Response) => {
     try {
         const params= req.params.tags.split("+")
         console.log(params)
@@ -439,4 +439,25 @@ export const getSales = async (req: Request, res: Response) => {
             }]
         })
     } 
+}
+export const getPubswCat= async (req: Request, res: Response) => {
+    try {
+        let pubs= await Funcs.findPubswCats(req.body.CATEGORY)
+        res.status(200).send({
+            data: {
+                msg: "Posts found with category",
+                list_of_pubs: pubs
+            }
+        })
+    } catch (error) {
+        res.status(401).json({
+            errors: [{
+                message: "No posts found with category",
+                extensions: {
+                    code: "Funcs.findPubswCat"
+                }
+            }]
+        })
+    }
+    
 }

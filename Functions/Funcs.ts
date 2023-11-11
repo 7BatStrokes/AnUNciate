@@ -42,7 +42,8 @@ export async function createUser(name:string, lastname:string, mail:string, pass
         return([id])
         }
     } catch (error) {
-        return(error);
+        console.log(error)
+        throw new Error(error);
     }
 }
 export async function updateUser(req: Request,  name?:string, lastname?:string, faculty?: string,city?: string) {
@@ -57,7 +58,8 @@ export async function updateUser(req: Request,  name?:string, lastname?:string, 
         })
         usuario.save();
     } catch (error) {
-        console.log(error);
+        console.log(error)
+        throw new Error(error)
     }
 } 
 export async function logIn(mail: string, password: string) {
@@ -74,7 +76,8 @@ export async function logIn(mail: string, password: string) {
             return("No user with that email")
         }
     } catch (error) {
-        return(error);
+        console.log(error)
+        throw new Error(error);
     }
 }
 export async function authUser(uuid: string) {
@@ -88,13 +91,14 @@ export async function authUser(uuid: string) {
         })
         return usuario
     } catch (error) {
-        return(error);
+        console.log(error)
+        throw new Error(error);
     }
 }
 export async function isLoggedIn (req: Request) : Promise<any> {
     try { 
         const payload: any = verify(req.cookies["access_token"], "access_secret")
-        const user: object= await authUser(payload.id)
+        const user: Model<any,any> | null= await authUser(payload.id)
         return(user)
     } catch (error) {
         console.log(error)
@@ -112,7 +116,8 @@ let updateToken= async function(user: Model <any,any>) {
         },"refresh_secret", {expiresIn: "1w"});
         return([access_token, refresh_token])
     } catch (error) {
-        return(error);
+        console.log(error)
+        throw new Error(error);
     }
 }
 let findUser= async function(uuid?: string, mail?: string) {
@@ -139,7 +144,8 @@ export async function createPublication(user_id:string, publication_title:string
             })
         publication.save();
     } catch (error) {
-        return(error);
+        console.log(error)
+        throw new Error(error);
     }
 }
 export async function updatePublication(req: Request, uuid: string, publication_title?:string, publication_description?:string, publication_price?: number, publication_quantity?: number) {
@@ -160,7 +166,8 @@ export async function updatePublication(req: Request, uuid: string, publication_
         }
         return("User is not logged In")
     } catch (error) {
-        console.log(error);
+        console.log(error)
+        throw new Error(error)
     }
 }
 export async function closePublication(uuid: string, state: number) {
@@ -171,19 +178,8 @@ export async function closePublication(uuid: string, state: number) {
         })
         publication?.save();     
     } catch (error) {
-        console.log(error);
-    }
-}
-export async function findHomePubs(limit?: number) {
-    try {
-        let pubs= await Models.PUB_MOD.findAll({
-            limit: 3,
-            order: [["PUBLICATION_DATE", "DESC"]]
-    })
-    return (pubs)
-    } catch (error) {
         console.log(error)
-        return(error)
+        throw new Error(error)
     }
 }
 export async function searchPubs(offset?: number, limit?: number) {
@@ -191,12 +187,12 @@ export async function searchPubs(offset?: number, limit?: number) {
         let pubs= await Models.PUB_MOD.findAll({
             limit: limit? limit: 3,
             offset: offset? offset: 0,
-            order: [["PUBLICATION_DATE", "DESC"]]
+            order: [["PUBLICATION_DATE", "DESC"]],
         })
         return(pubs)
     } catch (error) {
         console.log(error)
-       return(error) 
+        throw new Error(error)
     }
 }
 export async function checkDiscounted() {
@@ -204,7 +200,7 @@ export async function checkDiscounted() {
         let discounted: any[] = []
         let pubs= await Models.PUB_MOD.findAll({
             where: {
-                DISCOUNT: {
+                PUBLICATION_DISCOUNT: {
                 [Op.ne] : null
             }
             },
@@ -220,20 +216,25 @@ export async function checkDiscounted() {
         return(discounted)
     } catch (error) {
         console.log(error)
-       return(error) 
+        throw new Error(error) 
     }
 }
-export async function findPublication (uuid: string) {
+export async function pubInfo(pub_id: string) {
+    let publication= await Models.PUB_MOD.findByPk(pub_id)
+    let images= await findImgswPub(pub_id)
+    return `{"publication": "${publication}", "images": "${images}"}` 
+} 
+let findPublication= async function (uuid: string) {
     let publication= await Models.PUB_MOD.findByPk(uuid)
     return publication
 }
 let addDiscount= async function(pub: Model <any,any>, new_price: number) {
-    let discount= pub.getDataValue("PUBLICATION_PRICE") - new_price
+    let discount: number | null = pub.getDataValue("PUBLICATION_PRICE") - new_price
     if (discount<= 0) {
-        return
+        discount= null
     }
     pub.set({
-        DISCOUNT: discount
+        PUBLICATION_DISCOUNT: discount
     })
     pub.save()
 }
@@ -249,7 +250,8 @@ export async function createComment(publication_id: string, user_id: string, com
             })
         comment.save();
     } catch (error) {
-        console.log(error);
+        console.log(error)
+        throw new Error(error)
     }
 }
 export async function findComments(publication_id: string) {
@@ -274,7 +276,8 @@ export async function sendChatMessage(publication_id: string, user_1: string, us
             })
         chat.save();
     } catch (error) {
-        console.log(error);
+        console.log(error)
+        throw new Error(error)
     }
 }
 export async function findChats(publication_id: string, user_1: string, user_2: string) {
@@ -298,7 +301,25 @@ export async function createCategory(category_name: string, category_description
             })
         category.save();
     } catch (error) {
-        console.log(error);
+        console.log(error)
+        throw new Error(error)
+    }
+}
+export async function findCats() {
+    const cats= await Models.CAT_MOD.findAll()
+    return cats
+}
+let findCategoryID = async function (category: string) {
+    try {
+        let cat= await Models.CAT_MOD.findOne({
+            where: {
+                CATEGORY_NAME: category
+            }
+    })
+    return (cat?.getDataValue("CATEGORY_ID"))
+    } catch (error) {
+        console.log(error)
+        throw new Error(error)
     }
 }
 
@@ -321,6 +342,7 @@ let createImg= async function (img: Express.Multer.File) {
         .then((res) => res.text()).then(loadPost)
     } catch (error) {
         console.log(error)
+        throw new Error(error)
     }
     console.log("We are now here")
 }
@@ -342,7 +364,8 @@ export async function addImage2DB (image_id: string, user?: string, uuid?: strin
             PUBLICATION_ID: uuid,
         })
     } catch (error) {
-        return error
+        console.log(error)
+        throw new Error(error)
     }
     return
 }
@@ -364,13 +387,50 @@ export function loadPost() {
               document.getElementById("images")?.appendChild(newimg);
           } catch (error) {
             console.log(error)
+            throw new Error(error)
           }
         }
       });
 }
+let findImagePath= async function (uuid: string) {
+    let path= await Models.IMG_MOD.findByPk(uuid)
+    return path!.getDataValue("IMAGE_STR")
+}
+
+//Classes: KEYWORDS
+export async function createKeyword(keyword: string) {
+    try {
+        let key = await Models.KYW_MOD.build({
+            KEYWORD_ID: uuidv4(),
+            KEYWORD_WORD: keyword
+            })
+        key.save();
+    } catch (error) {
+        console.log(error)
+        throw new Error(error)
+    }
+}
+let findKeyID= async function (tags: Array<any>) {
+    let res= await Models.KYW_MOD.findAll({
+        where: {
+            KEYWORD_WORD: {
+                [Op.or] : tags
+            },
+        }
+    })
+    let y: any []= []
+    for (let index = 0; index < res.length; index++) {
+        let x= await res.at(index)!.getDataValue("KEYWORDS_ID")
+        y.push(x)
+    }
+    if (!y[0]) {
+        return null
+    }
+    return(y)
+}
 
 //Classes: REL_PUBSandIMGS
-export async function findPubImgs(pub_id: string) {
+export async function findImgswPub(pub_id: string) {
     try {
         let PubswImgs= await Models.RPI_MOD.findAll({
             where: {
@@ -388,12 +448,8 @@ export async function findPubImgs(pub_id: string) {
         return(PubswImgs)
     } catch (error) {
         console.log(error)
-       return(error) 
+        throw new Error(error) 
     }
-}
-let findImagePath= async function (uuid: string) {
-    let path= await Models.IMG_MOD.findByPk(uuid)
-    return path!.getDataValue("IMAGE_STR")
 }
 
 //Classes: REL_KEYandPUBS
@@ -425,24 +481,26 @@ export async function findPubswKeys(tags: Array<string>) {
         return(PubswKeys)
     } catch (error) {
         console.log(error)
-       return(error) 
+        throw new Error(error) 
     }  
 }
-let findKeyID= async function (tags: Array<any>) {
-    let res= await Models.KYW_MOD.findAll({
-        where: {
-            KEYWORD_WORD: {
-                [Op.or] : tags
-            },
-        }
-    })
-    let y: any []= []
-    for (let index = 0; index < res.length; index++) {
-        let x= await res.at(index)!.getDataValue("KEYWORDS_ID")
-        y.push(x)
+
+//Classes: REL_PUBandCAT
+export async function findPubswCats(category: string) {
+    try {
+        let pubs: Array<any>= []
+        let catID: string= await findCategoryID(category)
+        let pubIDs= await Models.RPC_MOD.findAll({
+            where: {
+                CATEGORY_ID: catID
+            }
+        })
+        pubIDs.forEach(element => {
+            pubs.push(findPublication(element.getDataValue("PUBLICATION_ID")))
+        });
+        return(pubs)
+    } catch (error) {
+        console.log(error)
+        throw new Error(error)
     }
-    if (!y[0]) {
-        return null
-    }
-    return(y)
 }
