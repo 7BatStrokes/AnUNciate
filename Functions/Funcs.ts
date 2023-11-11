@@ -306,7 +306,7 @@ export async function createCategory(category_name: string, category_description
     }
 }
 export async function findCats() {
-    const cats= await Models.CAT_MOD.findAll()
+    const cats= (await Models.CAT_MOD.findAll()).values
     return cats
 }
 let findCategoryID = async function (category: string) {

@@ -25,4 +25,7 @@ router.get("/sales", Conts.getSales)
 router.get("/pub/:id", Conts.getPubInfo)
 router.get("/category", Conts.getPubswCat);
 
+//Categories
+router.get("/categories", Conts.getAllCats);
+
 export default router;

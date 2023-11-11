@@ -461,3 +461,32 @@ export const getPubswCat= async (req: Request, res: Response) => {
     }
     
 }
+
+//Categories
+export const getAllCats = async (req: Request, res: Response) => {
+    try {
+        const cats= await Funcs.findCats();
+        cats ? res.status(200).send({
+            data: {
+                msg: "List of Categories",
+                list_of_cats: cats
+            }
+        }) : res.status(401).json({
+            errors: [{
+                message: "No categories Found",
+                extensions: {
+                    code: "Funcs.findCats"
+                }
+            }]
+        })
+    } catch (error) {
+        res.status(401).json({
+            errors: [{
+                message: "Could not connect to DB",
+                extensions: {
+                    code: "Controller issue"
+                }
+            }]
+        })
+    } 
+}
